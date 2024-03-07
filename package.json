@@ -1,5 +1,18 @@
 {
   "dependencies": {
     "express": "^4.18.2"
-  }
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "name": "redopaleda",
+  "description": "Redopal EDA",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "keywords": [
+    "EDA"
+  ],
+  "author": "Mark Dernie",
+  "license": "ISC"
 }
