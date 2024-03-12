@@ -1,0 +1,12 @@
+{"description":"broken kettle 1"}<<EVENT>>
+{"description":"broken kettle 2"}<<EVENT>>
+{"description":"broken kettle 3"}<<EVENT>>
+{"description":"broken kettle 4"}<<EVENT>>
+{}<<EVENT>>
+{id:123}{}<<EVENT>>
+{id:123}{}<<EVENT>>
+{id:123}{}<<EVENT>>
+{id:123}{}<<EVENT>>
+{}<<EVENT>>
+{"id":"456"}<<EVENT>>
+{"id":"456"}<<EVENT>>

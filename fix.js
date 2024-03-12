@@ -25,9 +25,9 @@ function getArgs() {
 
 
 var params=function(req){
-    //console.log('req.url:',req.url)
+    
     let q=req.url.split('?'),result={};
-    //console.log('q:',q)
+    
     if(q.length>=2){
         q[1].split('&').forEach((item)=>{
              try {
@@ -37,12 +37,12 @@ var params=function(req){
              }
         })
     }
-    //console.log('Params result now:',result)
+    
     return result;
   }
 
 var http = require('http');
-//var url = require('url');
+
 const fs = require('fs');
 const { url } = require('url');
 const queryString = require('querystring');
@@ -52,82 +52,59 @@ console.log('Server Starting listener', currentDate.toUTCString())
 
 const args = getArgs();
 const dir = './data/'
-//var file = args.file
+
 var port = args.port
-// if (!file) {
-//     //file='./data/file.txt'
-//     file='./data/'+currentDate.getTime()
-//     console.log('setting file as not sent')
-// }
+
+
 if (!port) {
     port=3000
 }
 var count = 0
 const separator = '<<EVENT>>\r\n'
-//console.log('Server File:',file)
+
 console.log('Server Port:',port)
 http.createServer((r, s) => {
-    //var queryData = url.parse(r.url, true).query;
-    //console.log('queryData:',queryData)
-
-    //console.log('\tRequest Url:',r.url)
-    //console.log('\tRequest SET r:')
-    //console.log('\tRequest method:',r.method)
-    //console.log('\tRequest params', params(r))
+    
     var querystring=params(r)
     file= querystring.file
     if(!file){
         return
     }
-    //console.log('file:',file)
+    
     path='./data/'+file
-    //console.log('\tpath:',path)
-    // if(!file) {
-    //     file='./data/'+currentDate.getTime()
-    // }
-    //console.log('\tRequest path:', path)
-    //console.log("created server",r.method)
-    //r.params=params(r); // call the function above ;
-      /**
-       * http://mysite/add?name=Ahmed
-       */
-     //console.log('file:',r.params.file) ; // display : "Ahmed"
-    //}
+    
     count++
     let returnval = 'returnval'
+    console.log('in backend',r.url,r.method,r.rawHeaders)
+    //console.log('in backend all',r)
     if (r.method == "PUT") {
-        console.log('\tRequest put',file)
+        console.log('\tRequest put',path)
         let body = '';
         r.on('data', (chunk) => {
             body += chunk;
         });
+        
         r.on('end', () => {
-            s.write("OK");
+            //s.write("OK");
             s.end();
-            console.log('\tput writing to ',file,body)
-            let processed=JSON.parse(body)
-            let id=JSON.parse(body).id
-            file=dir+JSON.parse(body).id
-            console.log('\tput id ',id)
-            console.log('\tput processed ',processed)
-            console.log('\tput age ',processed.age)
-            fs.appendFile(file, body, function (err) {
+            console.log('\tput writing to ',path,body)
+        
+            fs.appendFile(path, body+separator, function (err) {
                 if (err) {
                     console.log("\tappend failed")
                 } else {
-                    console.log("\tPUT Worked", count,file,body)
+                    console.log("\tPUT Worked", count,path,body)
                 }
             })
-            fs.appendFile(file, separator, function (err) {})
+            
         });
 
 
     } else if (r.method == "GET") {
-        //fullfile=dir+file
-        //console.log('fullfile',fullfile)
+        
         fs.readFile(path, function (err, data) {
             s.writeHead(200, { 'Content-Type': 'text/plain' });
-            //console.log("OK", count,file)
+            
             
             function notblank(value){
                 return value.length>0
@@ -146,10 +123,14 @@ http.createServer((r, s) => {
                     accumulator = currentValue,
                 initialValue,
             );
-            s.write(returnval)
             
+            console.log('\tGET return:',returnval)
+            
+            let jsonobj=JSON.parse(returnval)
+            s.write(JSON.stringify(jsonobj))
+                
             return s.end();
-            console.log("\tGET Worked", count,file,returnval)
+            console.log("\tGET Worked", count,path,returnval)
         });
     }
     console.log('-------')
