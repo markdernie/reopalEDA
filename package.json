@@ -4,6 +4,7 @@
   "description": "backup of eda",
   "main": "getput.js",
   "scripts": {
+    "start": "node getput.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
