@@ -67,18 +67,23 @@ console.log('Server Port:',port)
 
 
 http.createServer((r, s) => {
-    
+    console.log('print method:',r.method)
     var querystring=params(r)
+    console.log('parameters',querystring)
     file= querystring.file
     if(!file){
+        console.log('file is not set')
         return
     }
     
-    path='./data/'+file
+   path='./data/'+file
+   // path='./data/'+'2'
+   console.log('new full file:',file)
+   console.log('new full path:',path)
     
     count++
     let returnval = 'returnval'
-    console.log('in backend',r.url,r.method,r.rawHeaders)
+    console.log('in backend',r.url,r.method)
     //console.log('in backend all',r)
     if (r.method == "PUT") {
         console.log('\tRequest put',path)
@@ -105,6 +110,7 @@ http.createServer((r, s) => {
 
     } else if (r.method == "GET") {
         
+        console.log('file:',path)
         fs.readFile(path, function (err, data) {
             s.writeHead(200, { 'Content-Type': 'text/plain' });
             
@@ -113,7 +119,7 @@ http.createServer((r, s) => {
                 return value.length>0
             }
             if (!data){
-                s.write("no file found")
+                //s.write("no file found")
                 console.error("\tERROR no file found", count,file)
                 
                 return s.end();
