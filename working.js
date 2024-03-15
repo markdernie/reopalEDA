@@ -121,6 +121,10 @@ http.createServer((r, s) => {
             if (!data){
                 //s.write("no file found")
                 console.error("\tERROR no file found", count,file)
+                let error='{"ERROR":"File not found"}'
+                console.log('\tGET return:',{error})
+                let jsonobj=JSON.parse(error)
+                s.write(JSON.stringify(error))
                 
                 return s.end();
             }
