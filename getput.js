@@ -79,6 +79,7 @@ http.createServer((r, s) => {
     count++
     let returnval = 'returnval'
     console.log('in backend',r.url,r.method,r.rawHeaders)
+    console.log('recieved:',r.method)
     //console.log('in backend all',r)
     if (r.method == "PUT") {
         console.log('\tRequest put',path)
@@ -114,7 +115,7 @@ http.createServer((r, s) => {
             }
             if (!data){
                 s.write("no file found")
-                console.error("\tERROR no file found", count,file)
+                console.error("\tERROR no file found", file)
                 
                 return s.end();
             }
