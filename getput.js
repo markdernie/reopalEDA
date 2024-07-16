@@ -7,16 +7,18 @@ function printTime(message, arg1, verbose) {
     const format1 = "DATETIME_MED_WITH_SECONDS"
     const format2 = 'TIME_WITH_SECONDS'
 
+    arg1 = arg1.toString() + '   '.substr(0, 5)
+
 
     //if (verbose) {
-    //if (arg1) {
-    if (false) {
+    if (arg1) {
+        // if (false) {
         //arg1=typeof arg1==='string'?console.log('\t',message,'\t',arg1.substring(0,10),'\tat:',now.year:
 
         //console.log('\t', message, '\t', arg1, '\tat:', now.year,now.month,now.day,now.hour,now.minute)
-        console.log('\t', message, '\t', arg1, '\tat:', now.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS))
+        console.log('\t', message, '\t', arg1, '\tat:', now.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS) + ':', now.millisecond)
     } else {
-        console.log('\t', message, '\t', '\tat:', now.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS))
+        console.log('\t', message, '\t', arg1, '\tat:', now.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS) + ':', now.millisecond)
     }
 }
 function getArgs() {
@@ -113,205 +115,164 @@ printTime('port', port, verbose)
 
 
 
-    //http.createServer((r, s) => {
-    http.createServer((req, res) => {
-        printTime('createServer', '', verbose)
+//http.createServer((r, s) => {
+http.createServer((req, res) => {
+    printTime('got a request', '', verbose)
 
-        var querystring = params(req)
-        //printTime('querystring', querystring, verbose)
+    var querystring = params(req)
+    //printTime('querystring', querystring, verbose)
 
 
-        file = querystring.file
-        if (!file) {
-            printTime('EXITTING because of no file sent', '', verbose)
+    file = querystring.file
+    if (!file) {
+        printTime('EXITTING because of no file sent', '', verbose)
 
-            return
-        }
+        return
+    }
 
-        path = './data/' + file
+    path = './data/' + file
 
-        count++
-        let returnval = 'returnval'
-        printTime('method', req.method, verbose)
-        //console.log('querystring.action 2', querystring)
-        printTime('action', querystring.action, verbose)
+    count++
+    let returnval = 'returnval'
+    printTime('method', req.method, verbose)
+    //console.log('querystring.action 2', querystring)
+    printTime('action', querystring.action, verbose)
 
-        //console.log('method',req.method)
-        //printTime('method',req.method,verbose)
-        if (req.method == "PUT") {
+    //console.log('method',req.method)
+    //printTime('method',req.method,verbose)
+    if (req.method == "PUT") {
+        printTime('PUT', '', verbose)
 
-            let body = '';
-            req.on('data', (chunk) => {
-                body += chunk;
-            });
-            let arrayjson = JSON.stringify(body)
-            //res.write(arrayjson)
+        let body = '';
+        req.on('data', (chunk) => {
+            body += chunk;
+        });
+        let arrayjson = JSON.stringify(body)
+        //res.write(arrayjson)
 
-            //res.end();
+        //res.end();
 
-            req.on('end', () => {
+        req.on('end', () => {
 
 
-                bodyd = body
-                const finddoublequote = /\"/g
-                bodys = body.replaceAll(finddoublequote, "'")
+            bodyd = body
+            const finddoublequote = /\"/g
+            bodys = body.replaceAll(finddoublequote, "'")
 
-                printTime('bodys:', bodys, verbose)
+            printTime('bodys:', bodys, verbose)
 
-                //if (false) {
-                //            s.write(JSON.stringify(bodys))
+            //if (false) {
+            //            s.write(JSON.stringify(bodys))
 
-                //}
+            //}
 
-                let bodyparsed = JSON.parse(bodyd)
+            let bodyparsed = JSON.parse(bodyd)
 
+            fs.appendFile(path, JSON.stringify(bodys) + separator, function (err) {
+                if (err) {
 
+                    printTime('append FAILED:', path, verbose)
+                } else {
+                    printTime('PUT body Worked:', path, verbose)
 
+                }
+            })
 
+            let index = '{"id":"' + bodyparsed.id + '","creationdate":"' + bodyparsed.creationdate + '"}'
 
-                fs.appendFile(path, JSON.stringify(bodys) + separator, function (err) {
-                    if (err) {
+            fs.appendFile(indexfile, index + separator, function (err) {
+                if (err) {
+                    console.log("\tappend to index failed")
+                } else {
+                    console.log("\tPUT index Worked", indexfile)
+                }
+            })
 
-                        printTime('append FAILED:', path, verbose)
-                    } else {
-                        printTime('PUT body Worked:', path, verbose)
+            res.write(JSON.stringify(index))
 
-                    }
-                })
+            res.end();
+        });
+    }
+    if (req.method === "GET" && querystring.action === 'index') {
 
-                let index = '{"id":"' + bodyparsed.id + '","creationdate":"' + bodyparsed.creationdate + '"}'
-                //console.log('index', index)
+        printTime('GET index', '', verbose)
 
-                fs.appendFile(indexfile, index + separator, function (err) {
-                    if (err) {
-                        console.log("\tappend to index failed")
-                    } else {
-                        console.log("\tPUT index Worked", indexfile)
-                    }
-                })
+        res.writeHead(200, { 'Content-Type': 'application/json' });
 
-                res.write(JSON.stringify(index))
+        if (querystring.action === 'index') {
 
-                res.end();
 
+            fs.readFile(indexfile, "utf8", function (err, data) {
+                if (!data) {
+                    console.log('data empty')
+                    printTime('index is empty', '', verbose)
 
-            });
 
+                } else {
 
-        } else if (req.method === "GET") {
-            //    res.writeHead(200, {'Content-Type': 'text/plain'});
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            //res.write('Hello kate1 World!');
-            //res.end();
 
-            if (querystring.action === 'cv') {
-                //res.write('Hello kate0 World!');
+                    let array = data.toString().split('<<EVENT>>\r\n')
+                        .filter((val) => { return val });
 
-                printTime('file', file, verbose)
-                //"utf8" is the encoding of the file so you get a string rather than a buffer(see stack overflow in Work/Technology/Filesystem)
 
-                fs.readFile('./data/' + file, "utf8", function (err, data) {
-                    if (!data) {
-                        printTime('Data is empty', '', verbose)
-                        res.write(JSON.stringify({ 'ERROR': 'the file:' + file + ' does not exists' }))
-                        res.end();
+                    let arrayjson = JSON.stringify(array)
 
-                    } else {
+                    
 
+                    printTime('index write back arrayjson:', arrayjson, verbose)
+                    res.write(arrayjson)
 
-                        let array = data.toString().split('<<EVENT>>\r\n');
-                        console.log('array length',array.length)
+                    res.end();
 
+                }
 
-                        let KATE0 = data.toString().split('<<EVENT>>\r\n');
-                        //let KATE1=
-                        array.filter((val) => val)
-                        //console.log('KATE0', KATE0)
-                        const KATE2 = KATE0.reduce((accumulor, item) => {
-                            if (item) {
-                                accumulor = JSON.parse(item)
-
-                            }
-                            return accumulor
-
-                        }, {})
-                        console.log('CV:', KATE2)
-
-
-                        //console.log('KATE1', KATE1)
-
-                        //    KATE6={'name':'x'}
-                        //    KATE5=Object.keys(KATE6)
-                        //      Object.keys(KATE5).forEach(function(value){
-                        //         console.log('value=',value)
-                        //      })
-                        let go0 = data.toString().split('<<EVENT>>\r\n');
-                        console.log('go0:',go0)
-                        let go1 = go0.reduce((accumulor, item) => {
-                            if (item) {
-                                accumulor = JSON.parse(item)
-
-                            }
-                            return accumulor
-                        }, {})
-
-                        // let go2 = go1.reduce((accumulor, item) => {
-                        //     if (item) {
-                        //         accumulor = JSON.parse(item)
-
-                        //     }
-                        //     return accumulor
-
-                        // }, {})
-
-                        
-                        console.log('go1:',go1)
-                        //console.log('go2:',go2)
-
-
-
-                        res.write(JSON.stringify(KATE2))
-
-                        res.end();
-                    }
-
-                })
-            } else if (querystring.action === 'index') {
-                //console.log('action',querystring.action)
-
-                fs.readFile(indexfile, "utf8", function (err, data) {
-                    if (!data) {
-                        console.log('data empty')
-                        printTime('index is empty', '', verbose)
-
-
-                    } else {
-
-
-                        let array = data.toString().split('<<EVENT>>\r\n')
-                            .filter((val) => { return val });
-
-
-                        let arrayjson = JSON.stringify(array)
-
-                        let arrayman = [{ 'id': 1 }, { 'id': 0 }, { 'id': 2 }]
-
-
-                        res.write(arrayjson)
-
-                        res.end();
-
-                    }
-
-                })
-
-
-            }
-
-
+            })
 
 
         }
-        printTime('-------', '', verbose)
 
-    }).listen(port);
+    }
+
+
+    if (req.method === "GET" && querystring.action === 'cv') {
+        printTime('new code GET cv', '', verbose)
+        printTime('new code action=', querystring.action, verbose)
+        if (querystring.action === 'cv') {
+
+            printTime('action=cv ', querystring.action, verbose)
+
+            printTime('file', file, verbose)
+            //"utf8" is the encoding of the file so you get a string rather than a buffer(see stack overflow in Work/Technology/Filesystem)
+
+            fs.readFile('./data/' + file, "utf8", function (err, data) {
+                if (!data) {
+                    printTime('Data is empty', '', verbose)
+                    res.write(JSON.stringify({ 'ERROR': 'the file:' + file + ' does not exists' }))
+                    res.end();
+
+                } else {
+
+                    let go0 = data.toString().split('<<EVENT>>\r\n');
+                    printTime('go0:', go0, verbose)
+
+                    let go1 = go0.reduce((accumulor, item) => {
+                        if (item) {
+                            accumulor = JSON.parse(item)
+
+                        }
+                        return accumulor
+                    }, {})
+
+                    printTime('go1:', go1, verbose)
+
+                    res.write(JSON.stringify(go1))
+
+                    res.end();
+                }
+
+            })
+        }
+    }
+    printTime('end -------', '', verbose)
+
+}).listen(port);
