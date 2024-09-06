@@ -7,15 +7,8 @@ function printTime(message, arg1, verbose) {
     const format1 = "DATETIME_MED_WITH_SECONDS"
     const format2 = 'TIME_WITH_SECONDS'
 
-    arg1 = arg1.toString() + '   '.substr(0, 5)
-
-
-    //if (verbose) {
+    
     if (arg1) {
-        // if (false) {
-        //arg1=typeof arg1==='string'?console.log('\t',message,'\t',arg1.substring(0,10),'\tat:',now.year:
-
-        //console.log('\t', message, '\t', arg1, '\tat:', now.year,now.month,now.day,now.hour,now.minute)
         console.log('\t', message, '\t', arg1, '\tat:', now.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS) + ':', now.millisecond)
     } else {
         console.log('\t', message, '\t', arg1, '\tat:', now.toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS) + ':', now.millisecond)
@@ -64,21 +57,9 @@ var params = function (req) {
     return result;
 }
 
-// var express = require('express'),
-//     app = express(),
-//     server  = require('http').createServer(app);
-
-// server.listen(3001, function(err) {
-//         console.log(err, server.address());
-// });
-// console.log('leaving')
-
-// return
-// exit
-
 var http = require('http');
 
-//const verbose=
+
 
 const fs = require('fs');
 const { url } = require('url');
@@ -89,15 +70,14 @@ const { isMapIterator } = require('util/types');
 let currentDate = new Date()
 const dt = DateTime.local(2017, 5, 15, 8, 30);
 
-//console.log('Server Starting listener', currentDate.toUTCString())
+
 
 const args = getArgs();
 const verbose = args.v
-//printTime('DateTime', dt, verbose)
+
 printTime('start', '', verbose)
 if (verbose) { printTime('Verbose', verbose, verbose) }
-//console.log('args',args)
-//console.log('verbose',verbose)
+
 
 const dir = './data/';
 const indexfile = dir + 'index.dat'
@@ -114,14 +94,11 @@ printTime('port', port, verbose)
 
 
 
-
-//http.createServer((r, s) => {
 http.createServer((req, res) => {
     printTime('got a request', '', verbose)
 
     var querystring = params(req)
-    //printTime('querystring', querystring, verbose)
-
+    
 
     file = querystring.file
     if (!file) {
@@ -133,13 +110,9 @@ http.createServer((req, res) => {
     path = './data/' + file
 
     count++
-    let returnval = 'returnval'
+    
     printTime('method', req.method, verbose)
-    //console.log('querystring.action 2', querystring)
-    printTime('action', querystring.action, verbose)
-
-    //console.log('method',req.method)
-    //printTime('method',req.method,verbose)
+    
     if (req.method == "PUT") {
         printTime('PUT', '', verbose)
 
@@ -147,28 +120,18 @@ http.createServer((req, res) => {
         req.on('data', (chunk) => {
             body += chunk;
         });
-        let arrayjson = JSON.stringify(body)
-        //res.write(arrayjson)
-
-        //res.end();
+        
+        
 
         req.on('end', () => {
 
 
             bodyd = body
-            const finddoublequote = /\"/g
-            bodys = body.replaceAll(finddoublequote, "'")
-
-            printTime('bodys:', bodys, verbose)
-
-            //if (false) {
-            //            s.write(JSON.stringify(bodys))
-
-            //}
+            
 
             let bodyparsed = JSON.parse(bodyd)
 
-            fs.appendFile(path, JSON.stringify(bodys) + separator, function (err) {
+            fs.appendFile(path, bodyd + separator, function (err) {
                 if (err) {
 
                     printTime('append FAILED:', path, verbose)
@@ -188,7 +151,7 @@ http.createServer((req, res) => {
                 }
             })
 
-            res.write(JSON.stringify(index))
+            res.write(JSON.stringify({'message':'PUT SUCCESS'}))
 
             res.end();
         });
@@ -217,10 +180,20 @@ http.createServer((req, res) => {
 
                     let arrayjson = JSON.stringify(array)
 
-                    
+
 
                     printTime('index write back arrayjson:', arrayjson, verbose)
                     res.write(arrayjson)
+                    console.log('arrayjson:', arrayjson)
+
+                    for (const element of array) {
+                        console.log('LOOPING:', element)
+                        let jelement = JSON.parse(element)
+                        console.log('jelement:', jelement)
+                        console.log('jelement.id:', jelement.id)
+
+                    }
+                    res.write(JSON.stringify({'message':'GET index SUCCESS'}))
 
                     res.end();
 
@@ -231,6 +204,48 @@ http.createServer((req, res) => {
 
         }
 
+    }
+    if (req.method === "GET" && querystring.action === 'all') {
+        
+        fs.readFile(indexfile, "utf8", function (err, data) {
+            if (!data) {
+                console.log('data empty')
+                printTime('index is empty', '', verbose)
+            } else {
+                let alllines = data.toString().split('<<EVENT>>\r\n')
+                    .filter((val) => { return val });
+
+                for (const element of alllines) {
+                    
+                    let jelement = JSON.parse(element)
+                    
+                    fs.readFile('./data/' + jelement.id, "utf8", function (err, data2) {
+                        if (!data2) {
+                             printTime('index is empty', '', verbose)
+
+
+                        } else {
+                            let array2 = data2.toString().split('<<EVENT>>\r\n')
+                                .filter((val) => { return val });
+                            let data3 = JSON.stringify(data2)
+                           
+                            let returnval=JSON.stringify([array2.reduce((accumulor, item) => {return item},[])])
+                            
+                            res.write(returnval)
+                            
+                            res.end();
+                            
+
+                        }
+                    })
+                    
+                }
+
+                
+
+            }
+
+        })
     }
 
 
